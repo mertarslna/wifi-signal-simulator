@@ -1,5 +1,7 @@
 # 📶 Wi-Fi Sinyal Simülatörü ve Isı Haritası (Wi-Fi Heatmap Simulator)
 
+🌐 **Canlı Demo:** [https://mertarslna.github.io/wifi-signal-simulator/](https://mertarslna.github.io/wifi-signal-simulator/)
+
 Evinizin veya ofisinizin krokisini çizerek, modemin konumuna ve duvar materyallerine göre **gerçek zamanlı Wi-Fi kapsama alanı ısı haritasını (heatmap)** analiz edebileceğiniz interaktif, tarayıcı tabanlı bir RF simülasyon aracıdır.
 
 ## 🌟 Özellikler
