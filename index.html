@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wi-Fi Sinyal Simülatörü ve Isı Haritası (Wi-Fi Heatmap Simulator)</title>
+  <meta name="description" content="Evinizin krokisini çizin, modem konumunu seçin ve gerçek zamanlı Wi-Fi kapsama alanı ısı haritasını analiz edin.">
+
+  <!-- Google Fonts: Inter & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-wifi"></i>
+          <span class="pulse-ring"></span>
+        </div>
+        <div class="brand-text">
+          <h1>Wi-Fi Sinyal Simülatörü</h1>
+          <span class="badge">Isı Haritası & Sinyal Analizi</span>
+        </div>
+      </div>
+
+      <!-- Presets & Actions -->
+      <div class="header-actions">
+        <div class="preset-selector">
+          <label for="presetSelect"><i class="fa-solid fa-house-chimney"></i> Hazır Plan:</label>
+          <select id="presetSelect" class="custom-select">
+            <option value="empty">Boş Kroki (Kendin Çiz)</option>
+            <option value="1plus1" selected>1+1 Modern Daire (~65m²)</option>
+            <option value="2plus1">2+1 Aile Dairesi (~95m²)</option>
+            <option value="3plus1">3+1 Geniş Ev (~130m²)</option>
+            <option value="office">Açık Ofis & Toplantı Salonu</option>
+          </select>
+        </div>
+
+        <button id="btnSimulate" class="btn btn-primary pulse-btn">
+          <i class="fa-solid fa-bolt"></i> Sinyali Yeniden Hesapla
+        </button>
+
+        <button id="btnClear" class="btn btn-danger-outline" title="Tüm Çizimleri Ve Modemi Temizle">
+          <i class="fa-solid fa-trash-can"></i> Temizle
+        </button>
+
+        <button id="btnExport" class="btn btn-secondary" title="Isı Haritasını PNG Olarak İndir">
+          <i class="fa-solid fa-download"></i> Görsel İndir
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      
+      <!-- Left Sidebar: Controls & Settings -->
+      <aside class="sidebar left-sidebar">
+        
+        <!-- Navigation Tabs -->
+        <nav class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="tab-draw">
+            <i class="fa-solid fa-pen-ruler"></i> Kroki Çizim
+          </button>
+          <button class="tab-btn" data-tab="tab-router">
+            <i class="fa-solid fa-tower-broadcast"></i> Modem / Wi-Fi
+          </button>
+          <button class="tab-btn" data-tab="tab-heatmap">
+            <i class="fa-solid fa-fire-flame-curved"></i> Görselleştirme
+          </button>
+        </nav>
+
+        <!-- Tab Contents -->
+        <div class="tab-content-wrapper">
+          
+          <!-- TAB 1: KROKİ VE DUVAR ÇİZİMİ -->
+          <div id="tab-draw" class="tab-content active">
+            <div class="section-title">
+              <i class="fa-solid fa-hammer"></i> Çizim Araçları
+            </div>
+
+            <div class="tool-grid">
+              <button class="tool-btn active" data-tool="wall" id="toolWall">
+                <i class="fa-solid fa-border-all"></i>
+                <span>Duvar Çiz</span>
+              </button>
+              <button class="tool-btn" data-tool="router" id="toolRouter">
+                <i class="fa-solid fa-wifi"></i>
+                <span>Modem Koy</span>
+              </button>
+              <button class="tool-btn" data-tool="room" id="toolRoom">
+                <i class="fa-solid fa-vector-square"></i>
+                <span>Oda Etiketi</span>
+              </button>
+              <button class="tool-btn" data-tool="erase" id="toolErase">
+                <i class="fa-solid fa-eraser"></i>
+                <span>Silgi</span>
+              </button>
+              <button class="tool-btn" data-tool="select" id="toolSelect">
+                <i class="fa-solid fa-hand-pointer"></i>
+                <span>Taşı / Seç</span>
+              </button>
+            </div>
+
+            <!-- Material Types -->
+            <div class="section-title margin-top">
+              <i class="fa-solid fa-cubes"></i> Duvar Tipi & Malzeme
+            </div>
+            <div class="material-list">
+              <label class="material-card active" data-material="concrete">
+                <input type="radio" name="material" value="concrete" checked>
+                <div class="material-color concrete-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Betonarme / Dış Duvar</span>
+                  <span class="material-loss">-18 dB (Çok Yüksek Kayıp)</span>
+                </div>
+              </label>
+
+              <label class="material-card" data-material="brick">
+                <input type="radio" name="material" value="brick">
+                <div class="material-color brick-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Tuğla / İç Duvar</span>
+                  <span class="material-loss">-10 dB (Yüksek Kayıp)</span>
+                </div>
+              </label>
+
+              <label class="material-card" data-material="drywall">
+                <input type="radio" name="material" value="drywall">
+                <div class="material-color drywall-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Alçıpan / İnce Bölme</span>
+                  <span class="material-loss">-4.5 dB (Orta Kayıp)</span>
+                </div>
+              </label>
+
+              <label class="material-card" data-material="glass">
+                <input type="radio" name="material" value="glass">
+                <div class="material-color glass-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Cam / Pencere</span>
+                  <span class="material-loss">-3.5 dB (Minimum Kayıp)</span>
+                </div>
+              </label>
+
+              <label class="material-card" data-material="door">
+                <input type="radio" name="material" value="door">
+                <div class="material-color door-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Ahşap Kapı</span>
+                  <span class="material-loss">-5.5 dB Kayıp</span>
+                </div>
+              </label>
+
+              <label class="material-card" data-material="steel_door">
+                <input type="radio" name="material" value="steel_door">
+                <div class="material-color steel-door-color"></div>
+                <div class="material-info">
+                  <span class="material-name">Çelik / Zırhlı Kapı</span>
+                  <span class="material-loss">-22 dB (Çok Yüksek Kayıp)</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Drawing Helpers -->
+            <div class="control-group margin-top">
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkSnapGrid" checked>
+                <span>Izgaraya Hizala (Grid Snap)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkShowDimensions" checked>
+                <span>Duvar Uzunluklarını Göster (Metre)</span>
+              </label>
+            </div>
+            
+            <div class="undo-redo-bar">
+              <button id="btnUndo" class="btn btn-small" title="Geri Al (Ctrl+Z)"><i class="fa-solid fa-rotate-left"></i> Geri Al</button>
+              <button id="btnRedo" class="btn btn-small" title="Yinele (Ctrl+Y)"><i class="fa-solid fa-rotate-right"></i> Yinele</button>
+            </div>
+            
+            <div class="hotkey-hints margin-top">
+              <div class="hint-title"><i class="fa-solid fa-keyboard"></i> Kısayollar</div>
+              <ul>
+                <li><strong>Sağ Tık / Delete:</strong> Üzerine gelinen duvarı veya modemi siler</li>
+                <li><strong>Esc:</strong> Çizimi iptal eder</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- TAB 2: MODEM VE FREKANS AYARLARI -->
+          <div id="tab-router" class="tab-content">
+            <div class="section-title">
+              <i class="fa-solid fa-sliders"></i> Wi-Fi & Verici Parametreleri
+            </div>
+
+            <div class="control-group">
+              <label for="freqSelect">Frekans Bandı (Wi-Fi Standardı):</label>
+              <select id="freqSelect" class="custom-select">
+                <option value="2.4">2.4 GHz (Daha Uzak Menzil, Duvar Geçişi İyi)</option>
+                <option value="5" selected>5 GHz (Yüksek Hız, Duvar Engeli Hassas)</option>
+                <option value="6">6 GHz (Wi-Fi 6E/7 Ultra Hız, Çok Hassas)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="txPower">Verici Gücü (TX Power):</label>
+                <span id="txPowerVal" class="slider-val">20 dBm (100 mW)</span>
+              </div>
+              <input type="range" id="txPower" min="10" max="30" value="20" step="1">
+              <small class="help-text">Ev tipi varsayılan router gücü 20 dBm'dir.</small>
+            </div>
+
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="antennaGain">Anten Kazancı (Gain):</label>
+                <span id="antennaGainVal" class="slider-val">5 dBi</span>
+              </div>
+              <input type="range" id="antennaGain" min="2" max="9" value="5" step="1">
+            </div>
+
+            <div class="control-group">
+              <label for="channelWidth">Kanal Genişliği:</label>
+              <select id="channelWidth" class="custom-select">
+                <option value="20">20 MHz (Stabil)</option>
+                <option value="40">40 MHz</option>
+                <option value="80" selected>80 MHz (Standart Yüksek Hız)</option>
+                <option value="160">160 MHz (Ultra Geniş Bant)</option>
+              </select>
+            </div>
+
+            <div class="section-title margin-top">
+              <i class="fa-solid fa-network-wired"></i> Cihaz Ekle & Mesh
+            </div>
+            <p class="help-text mb-2">Evinizde Wi-Fi çekmeyen noktalar için ikinci bir Mesh nodu veya sinyal güçlendirici ekleyin:</p>
+            <button id="btnAddMesh" class="btn btn-secondary btn-block">
+              <i class="fa-solid fa-plus-node"></i> Ek Mesh Node / Genişletici Ekle
+            </button>
+
+            <div id="routerList" class="router-list margin-top">
+              <!-- Router items dynamically injected here -->
+            </div>
+          </div>
+
+          <!-- TAB 3: GÖRSELLEŞTİRME VE PALET -->
+          <div id="tab-heatmap" class="tab-content">
+            <div class="section-title">
+              <i class="fa-solid fa-palette"></i> Isı Haritası Görünümü
+            </div>
+
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="heatmapOpacity">Opaklık (Şeffaflık):</label>
+                <span id="heatmapOpacityVal" class="slider-val">%70</span>
+              </div>
+              <input type="range" id="heatmapOpacity" min="10" max="100" value="70">
+            </div>
+
+            <div class="control-group">
+              <label for="colorPalette">Renk Paleti:</label>
+              <select id="colorPalette" class="custom-select">
+                <option value="classic" selected>Klasik (Yeşil ➜ Sarı ➜ Kırmızı)</option>
+                <option value="cyber">Cyberpunk Neon (Turkuaz ➜ Mor ➜ Kırmızı)</option>
+                <option value="thermal">Termal Kamera (Beyaz ➜ Kırmızı ➜ Mavi)</option>
+                <option value="monochrome">Minimal Yeşil (Doğrudan dBm Tonları)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <div class="slider-header">
+                <label for="gridResolution">Simülasyon Çözünürlüğü:</label>
+                <span id="gridResolutionVal" class="slider-val">Detaylı (6px)</span>
+              </div>
+              <input type="range" id="gridResolution" min="3" max="12" value="6" step="1">
+              <small class="help-text">Düşük değerler daha hassas ısı haritası üretir.</small>
+            </div>
+
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkShowRays" checked>
+                <span>Sinyal Işınlarını (Ray Paths) Göster</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkShowContours" checked>
+                <span>Sinyal Eş Yükselti Çizgilerini (Contours) Göster</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="chkShowWalls" checked>
+                <span>Duvar İsimlerini ve dB Kayıplarını Göster</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- Center: Interactive Canvas Area -->
+      <section class="canvas-viewport">
+        
+        <!-- Canvas Status & Hint Header -->
+        <div class="canvas-toolbar">
+          <div class="status-indicator">
+            <span class="status-dot"></span>
+            <span id="canvasStatusText">Modem yerleştirmek için haritada bir noktaya tıklayın veya sürükleyin</span>
+          </div>
+
+          <div class="canvas-controls">
+            <button id="btnZoomIn" class="icon-btn" title="Yakınlaş"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button id="btnZoomOut" class="icon-btn" title="Uzaklaş"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <button id="btnResetView" class="icon-btn" title="Görünümü Sıfırla"><i class="fa-solid fa-expand"></i></button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <canvas id="wifiCanvas"></canvas>
+          
+          <!-- Live Cursor Probe / Inspector Card -->
+          <div id="liveInspector" class="live-inspector hidden">
+            <div class="inspector-header">
+              <i class="fa-solid fa-crosshair"></i> Sinyal Ölçüm Noktası
+            </div>
+            <div class="inspector-body">
+              <div class="stat-row">
+                <span>Sinyal Seviyesi (RSSI):</span>
+                <strong id="inspRssi" class="rssi-value">-45 dBm</strong>
+              </div>
+              <div class="signal-bar-outer">
+                <div id="inspBar" class="signal-bar-inner" style="width: 85%;"></div>
+              </div>
+              <div class="stat-row">
+                <span>Tahmini İnternet Hızı:</span>
+                <strong id="inspSpeed">450 Mbps</strong>
+              </div>
+              <div class="stat-row">
+                <span>Gecikme (Ping):</span>
+                <strong id="inspPing">4 ms</strong>
+              </div>
+              <div class="stat-row">
+                <span>Kapsama Durumu:</span>
+                <span id="inspBadge" class="badge badge-success">Mükemmel</span>
+              </div>
+              <div class="stat-row hint-row">
+                <i class="fa-solid fa-circle-info"></i>
+                <small id="inspHint">4K 60FPS Video streaming ve online oyun için ideal.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend Bar at Bottom -->
+        <div class="signal-legend-bar">
+          <div class="legend-title">Sinyal Kalitesi Skalası (dBm):</div>
+          <div class="legend-gradient-container">
+            <div class="legend-gradient" id="legendGradient"></div>
+            <div class="legend-ticks">
+              <span>-30 dBm (Mükemmel)</span>
+              <span>-50 dBm (Çok İyi)</span>
+              <span>-65 dBm (Orta)</span>
+              <span>-75 dBm (Zayıf)</span>
+              <span>-90 dBm (Kapsama Yok / Ölü)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Analytics & AI Recommendations -->
+      <aside class="sidebar right-sidebar">
+        <div class="section-title">
+          <i class="fa-solid fa-chart-pie"></i> Sinyal & Kapsama Raporu
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon green">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Mükemmel / İyi</span>
+              <strong id="metricGoodPct">78%</strong>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon red">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="metric-data">
+              <span class="metric-label">Ölü Bölge Oranı</span>
+              <strong id="metricDeadPct">8%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room Signal Breakdowns -->
+        <div class="section-title margin-top">
+          <i class="fa-solid fa-door-open"></i> Oda Bazlı Analiz
+        </div>
+
+        <div id="roomAnalysisList" class="room-analysis-list">
+          <!-- Room items injected via JS -->
+          <div class="empty-rooms-text">Henüz oda etiketi eklenmedi. "Oda Etiketi" aracı ile haritaya oda alanları ekleyebilirsiniz.</div>
+        </div>
+
+        <!-- Smart AI Optimization Tips -->
+        <div class="section-title margin-top">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Akıllı İyileştirme Tavsiyeleri
+        </div>
+
+        <div id="aiSuggestions" class="ai-suggestions">
+          <div class="suggestion-card info">
+            <i class="fa-solid fa-lightbulb"></i>
+            <div>
+              <strong>Modem Konum Tavsiyesi:</strong>
+              <p>Modemi dış duvar kenarı yerine evin orta koridor noktasına taşımak tüm odalarda kapsamayı %30 artıracaktır.</p>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/presets.js"></script>
+  <script src="js/heatmap.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
